@@ -3,6 +3,7 @@ import sys
 import time
 
 import pygame as pg
+import math
 
 
 WIDTH = 1600  # ゲームウィンドウの幅
@@ -52,6 +53,8 @@ class Bird:
             False
         )
         
+        self.dire=(5, 0)
+        
         self.rt_dct = {
             (0, -5):  pg.transform.flip(pg.transform.rotozoom(self.img, -90, 1.0), True, False),
             (5, -5):  pg.transform.flip(pg.transform.rotozoom(self.img, -45, 1.0), True, False),
@@ -90,6 +93,8 @@ class Bird:
             if key_lst[k]:
                 sum_mv[0] += mv[0]
                 sum_mv[1] += mv[1]
+                
+                self.dire = tuple(sum_mv)
                 
         self.rct.move_ip(sum_mv)
         if check_bound(self.rct) != (True, True):
@@ -146,11 +151,16 @@ class Beam:
         """
         self.img = pg.image.load(f"./fig/beam.png")
         self.rct = self.img.get_rect()
-        # こうかとんの中心座標を代入
+        
+        self.vx, self.vy = bird.dire
+        deg = math.degrees(math.atan2(-self.vy, self.vx))
+        
+        self.img = pg.transform.rotozoom(self.img, deg, 1.0)
+        
         self.rct.center = bird.rct.center
-        # こうかとんの半分の大きさずらす
-        self.rct.centerx += bird.rct.width/2
-        self.vx, self.vy = 5, 0
+        self.rct.centerx += (bird.rct.width/2) * self.vx / 5
+        self.rct.centery += (bird.rct.height/2) * self.vy / 5
+        
         
     def update(self, screen: pg.Surface):
         """
