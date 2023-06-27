@@ -76,7 +76,6 @@ class Bird:
             self.rct.move_ip(-sum_mv[0], -sum_mv[1])
         screen.blit(self.img, self.rct)
 
-
 class Bomb:
     """
     爆弾に関するクラス
@@ -107,6 +106,29 @@ class Bomb:
         self.rct.move_ip(self.vx, self.vy)
         screen.blit(self.img, self.rct)
 
+class Beam:
+    def __init__(self, bird: Bird) -> None:
+        """
+        こうかとんがビームを出すようにする
+        Args:
+            bird: こうかとんのインスタンス
+        """
+        self.img = pg.image.load(f"./fig/beam.png")
+        self.rct = self.img.get_rect()
+        # こうかとんの中心座標を代入
+        self.rct.center = bird.rct.center
+        # こうかとんの半分の大きさずらす
+        self.rct.centerx += bird.rct.width/2
+        self.vx, self.vy = 5, 0
+        
+    def update(self, screen: pg.Surface):
+        """
+        爆弾の座標の更新
+        Args:
+            screen (pg.Surface): 
+        """
+        self.rct.move_ip(self.vx, self.vy)
+        screen.blit(self.img, self.rct)
 
 def main():
     pg.display.set_caption("たたかえ！こうかとん")
@@ -117,23 +139,41 @@ def main():
 
     clock = pg.time.Clock()
     tmr = 0
+    beam = 0
     while True:
         for event in pg.event.get():
             if event.type == pg.QUIT:
                 return
+            # スペースキーが押下されていたらインスタンス生成
+            if event.type == pg.KEYDOWN and event.key == pg.K_SPACE:
+                beam = Beam(bird)
         
         screen.blit(bg_img, [0, 0])
         
-        if bird.rct.colliderect(bomb.rct):
-            # ゲームオーバー時にこうかとん画像を切り替え,1秒間表示させる
-            bird.change_img(8, screen)
-            pg.display.update()
-            time.sleep(1)
-            return
+        if bomb:
+            if bird.rct.colliderect(bomb.rct):
+                # ゲームオーバー時にこうかとん画像を切り替え,1秒間表示させる
+                bird.change_img(8, screen)
+                pg.display.update()
+                time.sleep(1)
+                return
 
         key_lst = pg.key.get_pressed()
+        
+        if beam:
+            # ビームの位置をアップデート
+            beam.update(screen)
+            
+        if beam and bomb:
+            # ビームと爆弾の衝突判定
+            if beam.rct.colliderect(bomb.rct):
+                bomb = 0
+                beam = 0
+        
+        if bomb:
+            bomb.update(screen)
+        
         bird.update(key_lst, screen)
-        bomb.update(screen)
         pg.display.update()
         tmr += 1
         clock.tick(50)
