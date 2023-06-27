@@ -166,12 +166,15 @@ class Beam:
         """
         爆弾の座標の更新
         Args:
-            screen (pg.Surface): 
+            screen (pg.Surface): 画面Surface
         """
         self.rct.move_ip(self.vx, self.vy)
         screen.blit(self.img, self.rct)
 
 class Score:
+    """
+    スコア表示のためのフォント, Rect設定
+    """
     def __init__(self) -> None:
         self.font = pg.font.SysFont("hgp創英角ﾎﾟｯﾌﾟ体", 50)
         self.color = (0, 0, 255)
@@ -179,6 +182,11 @@ class Score:
         self.x, self.y = 100, HEIGHT-50
         
     def update(self, screen: pg.Surface):
+        """
+        スコアの更新, blit
+        Args:
+            screen (pg.Surface): _画面Surface_
+        """
         self.img = self.font.render(f"score:{self.score}", 0, self.color)
         screen.blit(self.img, (self.x, self.y))
 
@@ -222,8 +230,10 @@ def main():
         for i in range(len(bomb)):
             if beam_lst and bomb:
                 for j in range(len(beam_lst)):
+                    # 数字での判断のため, 0だった場合判定をスルーする
                     if not beam_lst[j] or not bomb[i]:
                         continue
+                    
                     if beam_lst[j].rct.colliderect(bomb[i].rct):
                         bomb[i] = 0
                         beam_lst[j] = 0
@@ -232,6 +242,7 @@ def main():
                         score.score += 1
                         pg.display.update()
         
+        # 外出たらリストから消す
         for b in range(len(beam_lst)):
             if beam_lst[b]:
                 if check_bound(beam_lst[b].rct) != (True, True):
