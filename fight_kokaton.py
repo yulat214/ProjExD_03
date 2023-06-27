@@ -159,16 +159,19 @@ def main():
                 return
 
         key_lst = pg.key.get_pressed()
-        
-        if beam:
-            # ビームの位置をアップデート
-            beam.update(screen)
             
         if beam and bomb:
             # ビームと爆弾の衝突判定
             if beam.rct.colliderect(bomb.rct):
                 bomb = 0
                 beam = 0
+                
+                bird.change_img(6, screen)
+                pg.display.update()
+        
+        if beam:
+            # ビームの位置をアップデート
+            beam.update(screen)
         
         if bomb:
             bomb.update(screen)
