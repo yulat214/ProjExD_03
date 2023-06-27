@@ -179,7 +179,7 @@ class Score:
         self.x, self.y = 100, HEIGHT-50
         
     def update(self, screen: pg.Surface):
-        self.img = self.font.render(f"スコア:{self.score}", 0, self.color)
+        self.img = self.font.render(f"score:{self.score}", 0, self.color)
         screen.blit(self.img, (self.x, self.y))
 
 def main():
@@ -189,17 +189,17 @@ def main():
     bird = Bird(3, (900, 400))
     bomb = [Bomb() for _ in range(NUM_OF_BOMBS)]
     score = Score()
+    beam_lst = []
 
     clock = pg.time.Clock()
     tmr = 0
-    beam = 0
     while True:
         for event in pg.event.get():
             if event.type == pg.QUIT:
                 return
             # スペースキーが押下されていたらインスタンス生成
             if event.type == pg.KEYDOWN and event.key == pg.K_SPACE:
-                beam = Beam(bird)
+                beam_lst.append(Beam(bird))
         
         screen.blit(bg_img, [0, 0])
         
@@ -220,31 +220,45 @@ def main():
             
         # ビームと爆弾の衝突判定
         for i in range(len(bomb)):
-            if beam and bomb:
-                if beam.rct.colliderect(bomb[i].rct):
-                    bomb[i] = 0
-                    beam = 0
-                    
-                    bird.change_img(6, screen)
-                    score.score += 1
-                    pg.display.update()
+            if beam_lst and bomb:
+                for j in range(len(beam_lst)):
+                    if not beam_lst[j] or not bomb[i]:
+                        continue
+                    if beam_lst[j].rct.colliderect(bomb[i].rct):
+                        bomb[i] = 0
+                        beam_lst[j] = 0
 
+                        bird.change_img(6, screen)
+                        score.score += 1
+                        pg.display.update()
         
-        if beam:
-            # ビームの位置をアップデート
-            beam.update(screen)
-            
-        for i in range(len(bomb)):
-            if bomb[i]:
-                bomb[i].update(screen)
+        for b in range(len(beam_lst)):
+            if beam_lst[b]:
+                if check_bound(beam_lst[b].rct) != (True, True):
+                    beam_lst[b] = 0
+                        
+        if 0 in beam_lst:
+            beam_lst.remove(0)
                 
         if 0 in bomb:
             bomb.remove(0)
+            
+        if beam_lst:
+            # ビームの位置をアップデート
+            for i in range(len(beam_lst)):
+                beam_lst[i].update(screen)
+            
+        for i in range(len(bomb)):
+            if bomb[i]:
+                bomb[i].update(screen) 
         
         score.update(screen)
         bird.update(key_lst, screen)
         pg.display.update()
         tmr += 1
+        
+        # デバッグ用　画面外に出た時のリストの削除確認
+        # print(len(beam_lst))
         clock.tick(50)
 
 
