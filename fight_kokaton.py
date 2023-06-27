@@ -27,6 +27,7 @@ class Bird:
     """
     ゲームキャラクター（こうかとん）に関するクラス
     """
+    
     delta = {  # 押下キーと移動量の辞書
         pg.K_UP: (0, -5),
         pg.K_DOWN: (0, +5),
@@ -40,6 +41,7 @@ class Bird:
         引数1 num:こうかとん画像ファイル名の番号
         引数2 xy:こうかとん画像の位置座標タプル
         """
+        
         self.img = pg.transform.flip(  # 左右反転
             pg.transform.rotozoom(  # 2倍に拡大
                 pg.image.load(f"./fig/{num}.png"), 
@@ -48,6 +50,18 @@ class Bird:
             True, 
             False
         )
+        
+        self.rt_dct = {
+            (0, -5):  pg.transform.flip(pg.transform.rotozoom(self.img, -90, 1.0), True, False),
+            (5, -5):  pg.transform.flip(pg.transform.rotozoom(self.img, -45, 1.0), True, False),
+            (5, 0):   pg.transform.flip(pg.transform.rotozoom(self.img, 0, 1.0), True, False),
+            (5, 5):  pg.transform.flip(pg.transform.rotozoom(self.img, 45, 1.0), True, False),
+            (0, 5):   pg.transform.flip(pg.transform.rotozoom(self.img, 90, 1.0), True, False),
+            (-5, 5):  pg.transform.rotozoom(self.img, 45, 1.0),
+            (-5, 0):  pg.transform.rotozoom(self.img, 0, 1.0),
+            (-5, -5): pg.transform.rotozoom(self.img, -45, 1.0)
+        }
+        
         self.rct = self.img.get_rect()
         self.rct.center = xy
 
@@ -57,7 +71,11 @@ class Bird:
         引数1 num:こうかとん画像ファイル名の番号
         引数2 screen:画面Surface
         """
-        self.img = pg.transform.rotozoom(pg.image.load(f"./fig/{num}.png"), 0, 2.0)
+        
+        if num == 3:
+            self.img = pg.transform.flip(pg.transform.rotozoom(pg.image.load(f"./fig/{num}.png"), 0, 2.0), True, False)
+        else:
+            self.img = pg.transform.rotozoom(pg.image.load(f"./fig/{num}.png"), 0, 2.0)
         screen.blit(self.img, self.rct)
 
     def update(self, key_lst: list[bool], screen: pg.Surface):
@@ -71,9 +89,15 @@ class Bird:
             if key_lst[k]:
                 sum_mv[0] += mv[0]
                 sum_mv[1] += mv[1]
+                
         self.rct.move_ip(sum_mv)
         if check_bound(self.rct) != (True, True):
             self.rct.move_ip(-sum_mv[0], -sum_mv[1])
+            
+        # sum_mvに何らかの値が入っていれば向きを変える
+        if sum_mv != [0, 0]:
+            self.img = self.rt_dct[(-sum_mv[0], -sum_mv[1])]
+            
         screen.blit(self.img, self.rct)
 
 class Bomb:
@@ -168,6 +192,9 @@ def main():
                 
                 bird.change_img(6, screen)
                 pg.display.update()
+                time.sleep(1)
+                
+                bird.change_img(3, screen)
         
         if beam:
             # ビームの位置をアップデート
